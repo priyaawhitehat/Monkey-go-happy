@@ -1,134 +1,120 @@
-//calling variables
-  var obstacle, obstacleImage, obstacleGroup;
-  var banana, bananaImage, bananaGroup;
-  var monkey, monkey_running;
-  var backgroundy, backgroundImage;
-  var score= 0;
-  var ground;
+var backImage,backgr;
+var player, player_running;
+var ground,ground_img;
+
+var FoodGroup, bananaImage;
+var obstaclesGroup, obstacle_img;
+
+var END =0;
+var PLAY =1;
+var gameState = PLAY;
+
+var gameOver; 
+var score=0;
+var attempts=3;
 
 function preload(){
-  //loading image for background  
-    backgroundImage= loadImage("jungle.jpg");
-  
-  //loading animation for monkey
-  monkey_running= loadAnimation ("Monkey_01.png", "Monkey_02.png", "Monkey_03.png", "Monkey_04.png", "Monkey_05.png", "Monkey_06.png", "Monkey_07.png", "Monkey_08.png", "Monkey_09.png", "Monkey_10.png");
-  
-  //loading images for banana and obstacles
-    bananaImage= loadImage("banana.png");
-    obstacleImage= loadImage("stone.png");
+  backImage=loadImage("jungle.jpg");
+  player_running = loadAnimation("Monkey_01.png","Monkey_02.png","Monkey_03.png","Monkey_04.png","Monkey_05.png","Monkey_06.png","Monkey_07.png","Monkey_08.png","Monkey_09.png","Monkey_10.png");
+  bananaImage = loadImage("banana.png");
+  obstacle_img = loadImage("stone.png"); 
+  gameOverImg = loadImage("gameOver.png");
 }
 
 function setup() {
-  //creating canvas  
-    createCanvas(400,400);
+  createCanvas(800,400);
   
-  //creating background sprite
-    backgroundy= createSprite (200,200);
-    backgroundy.addImage ("backgroundimage", backgroundImage);
-    backgroundy.velocityX= -2;
-    
-  //creating monkey sprite
-    monkey= createSprite (50,340,10,10);
-    monkey.addAnimation ("monkeyrunning", monkey_running);
-    monkey.scale+= 0.2;
+  backgr=createSprite(0,0,800,400);
+  backgr.addImage(backImage);
+  backgr.scale=1.5;
+  backgr.x=backgr.width/2;
+  backgr.velocityX=-4;
   
-  //creating ground sprite
-    ground= createSprite (0,390,800,10);
-    ground.visible= false;
+  player = createSprite(100,340,20,50);
+  player.addAnimation("Running",player_running);
+  player.scale = 0.1;
   
-  //creating groups for banana and obstacles
-    bananaGroup= new Group ();
-    obstacleGroup= new Group ();
+  ground = createSprite(400,350,800,10);
+  ground.x=ground.width/2;
+  ground.visible=false;
+  
+  FoodGroup = new Group();
+  obstaclesGroup = new Group();
+  
+  score = 0;
 }
 
-function draw() {
-  //assigning background color
-    background("white");
+function draw() { 
+  background(0);
+  drawSprites();
   
-  //to know the position of monkey to make more changes
-    console.log(monkey.y);
+  stroke("white");
+  textSize(20);
+  fill("white");
+  text("Score: "+ score, 550,50);
   
-  //reseting background
-    if (backgroundy.x<150) {
-      backgroundy.x= 200
-    }   
+  if(gameState===PLAY){
   
-  //making the monkey jump  
-    if (keyDown ("space")&& monkey.y>=355) {
-      monkey.velocityY= -20;  
-    }    
-    
-  //adding gravity to monkey
-    monkey.velocityY= monkey.velocityY + 0.8;
+  if(backgr.x<100){
+    backgr.x=backgr.width/2;
+  }
   
-  //preventing the monkey from falling off the ground
-    monkey.collide (ground);
-  
-  //scoring system and changing size of the monkey
-    if (bananaGroup.isTouching(monkey)) {
-      score= score+2;
-      bananaGroup.destroyEach();
+    if(FoodGroup.isTouching(player)){
+      FoodGroup.destroyEach();
+      player.scale += 0.05
+      score = score + 2;
     }
   
-    switch (score) {
-      case 10: monkey.scale= 0.15;
-      break;
-      case 20: monkey.scale= 0.20;
-      break;
-      case 30: monkey.scale= 0.25;
-      break;
-      case 40: monkey.scale= 0.30;
-      break;
-      case 50: monkey.scale= 0.35;
-      break;
-      default: break;
+    if(keyDown("space") ) {
+      player.velocityY = -12;
     }
+    player.velocityY = player.velocityY + 0.8;
   
-    if (obstacleGroup.isTouching(monkey)) {
-      score= 0;
-      obstacleGroup.destroyEach();
-      monkey.scale= 0.1;
+    player.collide(ground);
+    spawnFood();
+    spawnObstacles();  
+ 
+    if(obstaclesGroup.isTouching(player)){ 
+        gameState = END;
     }
-  
-   
-  //calling user-defined functions
-    spawnBananas();
-    spawnObstacles();
-  
-  //drawing sprites
-    drawSprites();
-  
-  //displaying score
-    stroke ("white");
-    textSize (15);
-    text ("Score: "+score,190,70);  
-}
+  }else if(gameState === END){
 
-//function for bananas
-function spawnBananas () {
-  if (frameCount%90===0) {
-    banana= createSprite (360,120,10,10);  
-    banana.addImage ("bananaimage", bananaImage);
-    banana.scale= 0.06;
-    banana.velocityX= -3;
+    backgr.velocityX = 0;
+    player.visible = false;
     
-    //adding lifetime to bananas
-      banana.lifetime= 150;
-    
-    //adding banana to banana group
-      bananaGroup.add(banana);
+    FoodGroup.destroyEach();
+    obstaclesGroup.destroyEach();
+
+    textSize(30);
+    fill(255);
+    text("Game Over!", 300,220);
   }
 }
 
-//function for obstacles
-function spawnObstacles () {
-  if (frameCount%90===0) {
-    obstacle= createSprite (270,370,10,10);
-    obstacle.addImage ("obstacleimage", obstacleImage);
-    obstacle.scale= 0.05;
-    obstacle.velocityX= -4;
+function spawnFood() {
+  //write code here to spawn the food
+  if (frameCount % 80 === 0) {
+    var banana = createSprite(600,250,40,10);
+    banana.y = random(120,200);    
+    banana.addImage(bananaImage);
+    banana.scale = 0.05;
+    banana.velocityX= -4; 
     
-    //adding obstacle to obstacle group
-      obstacleGroup.add(obstacle);
+    banana.lifetime = 300;
+    player.depth = banana.depth + 1;
+    FoodGroup.add(banana);
+  }
+}
+
+function spawnObstacles() {
+  //write code here to spawn the obstacles
+  if(frameCount % 300 === 0) {
+    var obstacle = createSprite(800,350,10,40);
+    obstacle.velocityX=-(4 + 2*score/100); 
+    obstacle.addImage(obstacle_img);
+    
+    obstacle.scale = 0.2;
+    obstacle.lifetime = 300;
+    obstaclesGroup.add(obstacle);
   }
 }
