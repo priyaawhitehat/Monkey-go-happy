@@ -30,7 +30,7 @@ function setup() {
   //creating monkey sprite
     monkey= createSprite (50,340,10,10);
     monkey.addAnimation ("monkeyrunning", monkey_running);
-    monkey.scale= 0.1;
+    monkey.scale+= 0.2;
   
   //creating ground sprite
     ground= createSprite (0,390,800,10);
